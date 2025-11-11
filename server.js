@@ -22,7 +22,6 @@ mongoose
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.log("❌ MongoDB connection error:", err));
 
-// ✅ Root route (optional)
 app.get("/", (req, res) => {
   res.send("🚀 Backend server running...");
 });
@@ -30,7 +29,7 @@ app.get("/", (req, res) => {
 // ✅ Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/category", categoryRoutes);
-app.use("/api/products", productRoutes); // <-- make sure it's plural!
+app.use("/api/product", productRoutes); // <-- make sure it's plural!
 
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
