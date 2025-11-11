@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 
 
-const MONGO_URI = 'mongodb://127.0.0.1:27017/FHgeneralEquipments';
+const MONGO_URI = 'mongodb+srv://fhuser:fhpassword@cluster0.zxgpcla.mongodb.net/FHgeneralEquipments';
+
+
 
 console.log(MONGO_URI);
 const db = mongoose.connect(MONGO_URI, {
