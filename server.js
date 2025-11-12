@@ -7,6 +7,7 @@ import path from "path";
 import adminRoutes from "./routes/adminRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import bannerRoutes from "./routes/bannerRoutes.js"
 
 dotenv.config();
 const app = express();
@@ -30,6 +31,8 @@ app.get("/", (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/product", productRoutes); // <-- make sure it's plural!
+app.use("/api/banners", bannerRoutes);
+
 
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
