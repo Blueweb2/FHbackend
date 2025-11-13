@@ -13,8 +13,6 @@ const productSchema = new mongoose.Schema({
     ref: "Category_table",
     required: true,
   },
- 
-
 
   // Description of the product
   description: { type: String, required: true, trim: true },
