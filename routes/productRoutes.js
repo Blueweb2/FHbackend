@@ -3,6 +3,7 @@ import multer from "multer";
 import fs from "fs";
 import Product_table from "../models/productModel.js";
 import ProductImageTable from "../models/productImage.js";
+
 const router = express.Router();
 
 
@@ -11,7 +12,8 @@ const router = express.Router();
 ============================================================ */
 const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = "uploads/products";
+    const dir = "/var/www/uploads/products";
+  
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -20,9 +22,21 @@ const productStorage = multer.diskStorage({
   },
 });
 const uploadProductImage = multer({ storage: productStorage });
+// const storage = multer.memoryStorage(); // <--- store in memory not disk
+// const upload = multer({ storage });
 
 
 
+// fetch 10 latest product to user featured product 
+router.get("/latest", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const products = await Product_table.find().sort({ createdAt: -1 }).limit(limit);
+    res.json({ success: true, products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 router.get("/userview", async (req, res) => {
   try {
@@ -272,6 +286,64 @@ router.post("/add", async (req, res) => {
   }
 });
 
+//
+
+
+
+// router.post("/add", upload.single("image"), async (req, res) => {
+//   try {
+//     const { prod_id, product_name, CAT_ID, description, product_info } = req.body;
+
+//     if (!prod_id || !product_name || !CAT_ID || !description) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All required fields must be filled",
+//       });
+//     }
+
+//     let webpImagePath = null;
+
+//     // If image uploaded → convert to WEBP
+//     if (req.file) {
+//       const uploadsDir = "uploads/products";
+
+//       if (!fs.existsSync(uploadsDir)) {
+//         fs.mkdirSync(uploadsDir, { recursive: true });
+//       }
+
+//       // Generate unique filename
+//       const filename = `${Date.now()}.webp`;
+//       webpImagePath = path.join(uploadsDir, filename);
+
+//       // Convert using Sharp
+//       await sharp(req.file.buffer)
+//         .webp({ quality: 80 })
+//         .toFile(webpImagePath);
+//     }
+
+//     // Create product
+//     const newProduct = new Product_table({
+//       prod_id,
+//       product_name,
+//       CAT_ID,
+//       description,
+//       product_info,
+//       image: webpImagePath, // store converted webp
+//     });
+
+//     await newProduct.save();
+
+//     res.status(201).json({
+//       success: true,
+//       message: "✅ Product added successfully",
+//       product: newProduct,
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error adding product:", error);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
 /* ============================================================
    ✅ 2. Upload Product Images
 ============================================================ */
@@ -497,9 +569,6 @@ router.get("/view", async (req, res) => {
       .json({ success: false, message: "Server Error fetching products" });
   }
 });
-
-
-
 
 
 

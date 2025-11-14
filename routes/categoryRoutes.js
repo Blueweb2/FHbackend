@@ -8,7 +8,9 @@ const router = express.Router();
 // ✅ Multer storage setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = "uploads/categories";
+    
+    // const dir = "uploads/categories";
+     const dir = "/var/www/uploads/categories";
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
