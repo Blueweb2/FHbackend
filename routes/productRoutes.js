@@ -37,8 +37,6 @@ router.get("/latest", async (req, res) => {
       .populate("CAT_ID", "category_name")
       .lean();
 
-    const baseUrl = `${req.protocol}://${req.get("host")}/`;
-
     const productsWithImages = await Promise.all(
       products.map(async (product) => {
         const mainImg =
@@ -51,7 +49,7 @@ router.get("/latest", async (req, res) => {
           product_name: product.product_name,
           description: product.description,
           category: product.CAT_ID?.category_name || "Uncategorized",
-          main_image: mainImg ? `${baseUrl}${mainImg.image_path}` : null,
+          main_image: mainImg ? `/${mainImg.image_path}` : null,
         };
       })
     );
