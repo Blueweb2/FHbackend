@@ -57,7 +57,7 @@ router.get("/userview", async (req, res) => {
         // If no main image found, pick the first uploaded image
         if (!mainImage) {
           mainImage = await ProductImageTable.findOne({ PRODUCT_ID: product._id }).sort({
-            _id: 1,
+            _id: -1,
           });
         }
 
