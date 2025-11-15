@@ -20,22 +20,31 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ✅ Add category
-router.post("/add", upload.single("image"), async (req, res) => {
-  try {
-    const { category_name } = req.body;
-    const image = req.file ? `uploads/categories/${req.file.filename}` : null;
+router.post("/add", (req, res) => {
+  const singleUpload = upload.single("image");
 
-    if (!category_name || !image)
-      return res.status(400).json({ success: false, message: "All fields required" });
+  singleUpload(req, res, async (err) => {
+    if (err) {
+      console.error("Multer error while adding category:", err);
+      return res.status(400).json({ success: false, message: err.message || "File upload error", code: err.code || null });
+    }
 
-    const newCategory = new Category_table({ category_name, category_image: image });
-    await newCategory.save();
+    try {
+      const { category_name } = req.body;
+      const image = req.file ? `uploads/categories/${req.file.filename}` : null;
 
-    res.json({ success: true, message: "✅ Category added successfully" });
-  } catch (error) {
-    console.error("❌ Error adding category:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+      if (!category_name || !image)
+        return res.status(400).json({ success: false, message: "All fields required" });
+
+      const newCategory = new Category_table({ category_name, category_image: image });
+      await newCategory.save();
+
+      res.json({ success: true, message: "✅ Category added successfully" });
+    } catch (error) {
+      console.error("❌ Error adding category:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  });
 });
 
 // ✅ View all categories (newest first)

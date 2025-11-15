@@ -347,27 +347,36 @@ router.post("/add", async (req, res) => {
 /* ============================================================
    ✅ 2. Upload Product Images
 ============================================================ */
-router.post("/upload-images/:PRODUCT_ID", uploadProductImage.array("images", 10), async (req, res) => {
-  try {
-    const { PRODUCT_ID } = req.params;
-    const { mainIndex } = req.body;
-    const files = req.files;
+router.post("/upload-images/:PRODUCT_ID", (req, res) => {
+  const multipleUpload = uploadProductImage.array("images", 10);
 
-    if (!files || files.length === 0)
-      return res.status(400).json({ success: false, message: "No images uploaded" });
+  multipleUpload(req, res, async (err) => {
+    if (err) {
+      console.error("Multer error while uploading product images:", err);
+      return res.status(400).json({ success: false, message: err.message || "File upload error", code: err.code || null });
+    }
 
-    const imageDocs = files.map((file, index) => ({
-      PRODUCT_ID,
-      image_path: `uploads/products/${file.filename}`,
-      is_main: parseInt(mainIndex) === index,
-    }));
+    try {
+      const { PRODUCT_ID } = req.params;
+      const { mainIndex } = req.body;
+      const files = req.files;
 
-    await ProductImageTable.insertMany(imageDocs);
-    res.json({ success: true, message: "✅ Images uploaded successfully" });
-  } catch (error) {
-    console.error("❌ Error uploading product images:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+      if (!files || files.length === 0)
+        return res.status(400).json({ success: false, message: "No images uploaded" });
+
+      const imageDocs = files.map((file, index) => ({
+        PRODUCT_ID,
+        image_path: `uploads/products/${file.filename}`,
+        is_main: parseInt(mainIndex) === index,
+      }));
+
+      await ProductImageTable.insertMany(imageDocs);
+      res.json({ success: true, message: "✅ Images uploaded successfully" });
+    } catch (error) {
+      console.error("❌ Error uploading product images:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  });
 });
 
 /* ============================================================

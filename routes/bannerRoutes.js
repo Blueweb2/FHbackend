@@ -29,13 +29,20 @@ const upload = multer({ storage });
 //            CREATE BANNER (desktop + mobile)
 // =================================================
 
-router.post(
-  "/",
-  upload.fields([
+router.post("/", (req, res) => {
+  // Call multer inside the route so we can catch multer errors here
+  const fieldsUpload = upload.fields([
     { name: "desktopImage", maxCount: 1 },
     { name: "mobileImage", maxCount: 1 },
-  ]),
-  async (req, res) => {
+  ]);
+
+  fieldsUpload(req, res, async (err) => {
+    if (err) {
+      // Multer error (file too large, invalid file type, etc.)
+      console.error("Multer error while uploading banner:", err);
+      return res.status(400).json({ message: err.message || "File upload error", code: err.code || null });
+    }
+
     try {
       // Desktop image must be uploaded
       if (!req.files || !req.files.desktopImage) {
@@ -67,8 +74,8 @@ router.post(
       console.error("ERROR while uploading banner:", error);
       res.status(500).json({ message: error.message });
     }
-  }
-);
+  });
+});
 
 // =================================================
 //                     GET ALL
