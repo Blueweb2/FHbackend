@@ -19,7 +19,7 @@ const app = express();
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 // // app.use("/uploads", express.static("uploads"));
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use('/uploads', express.static('/var/www/uploads'))
 
