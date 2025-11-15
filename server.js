@@ -16,18 +16,30 @@ dotenv.config();
 const app = express();
 
 // ✅ Middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({
+  origin: ["http://localhost:3000", "https://fhgeneralequipments.com"],
+  credentials: true
+}));
+
 app.use(express.json());
+
 // // app.use("/uploads", express.static("uploads"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use('/uploads', express.static('/var/www/uploads'))
+// app.use('/uploads', express.static('/var/www/uploads'))
+// Serve uploads folder correctly
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.log("❌ MongoDB connection error:", err));
+// import connectDB from "./db.js";
+// connectDB();
+
+
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend server running...");
