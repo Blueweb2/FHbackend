@@ -31,8 +31,32 @@ const uploadProductImage = multer({ storage: productStorage });
 router.get("/latest", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const products = await Product_table.find().sort({ createdAt: -1 }).limit(limit);
-    res.json({ success: true, products });
+    const products = await Product_table.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("CAT_ID", "category_name")
+      .lean();
+
+    const baseUrl = `${req.protocol}://${req.get("host")}/`;
+
+    const productsWithImages = await Promise.all(
+      products.map(async (product) => {
+        const mainImg =
+          (await ProductImageTable.findOne({ PRODUCT_ID: product._id, is_main: true })) ||
+          (await ProductImageTable.findOne({ PRODUCT_ID: product._id }));
+
+        return {
+          _id: product._id,
+          prod_id: product.prod_id,
+          product_name: product.product_name,
+          description: product.description,
+          category: product.CAT_ID?.category_name || "Uncategorized",
+          main_image: mainImg ? `${baseUrl}${mainImg.image_path}` : null,
+        };
+      })
+    );
+
+    res.json({ success: true, products: productsWithImages });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
