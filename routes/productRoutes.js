@@ -39,17 +39,26 @@ router.get("/latest", async (req, res) => {
 
     const productsWithImages = await Promise.all(
       products.map(async (product) => {
-        const mainImg =
-          (await ProductImageTable.findOne({ PRODUCT_ID: product._id, is_main: true })) ||
-          (await ProductImageTable.findOne({ PRODUCT_ID: product._id }));
+        let mainImage = await ProductImageTable.findOne({
+          PRODUCT_ID: product._id,
+          is_main: true,
+        });
+
+        // If no main image found, pick the first uploaded image
+        if (!mainImage) {
+          mainImage = await ProductImageTable.findOne({ PRODUCT_ID: product._id }).sort({
+            _id: -1,
+          });
+        }
 
         return {
           _id: product._id,
           prod_id: product.prod_id,
           product_name: product.product_name,
           description: product.description,
+          product_info: product.product_info || "",
           category: product.CAT_ID?.category_name || "Uncategorized",
-          main_image: mainImg ? `/${mainImg.image_path}` : null,
+          main_image: mainImage ? mainImage.image_path : null, // ✅ attach image
         };
       })
     );
