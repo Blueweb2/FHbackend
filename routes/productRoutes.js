@@ -375,6 +375,8 @@ router.post("/add", async (req, res) => {
 //     res.status(500).json({ success: false, message: "Server error" });
 //   }
 // });
+
+
 /* ============================================================
    ✅ 2. Upload Product Images
 ============================================================ */
@@ -527,7 +529,7 @@ router.post("/delete", async (req, res) => {
   }
 });
 
-// ✅ Get Single Product by ID
+// ✅ Get Single Product by ID to edit
 router.get("/:id", async (req, res) => {
   try {
     const product = await Product_table.findById(req.params.id)
@@ -548,7 +550,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ Update Product Details
+// ✅ Update Product Details  edit
 router.put("/update/:id", async (req, res) => {
   try {
     const { prod_id, product_name, CAT_ID, description, product_info } = req.body;
