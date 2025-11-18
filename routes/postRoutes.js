@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import Blog_table from "../models/blogModel.js";
+import Blog_table from "../models/postModel.js";
 
 const router = express.Router();
 
