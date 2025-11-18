@@ -26,29 +26,95 @@ const uploadProductImage = multer({ storage: productStorage });
 // const upload = multer({ storage });
 
 // admin edit produt images 
-router.put("/replace-image/:id/:index",
+router.put("/replace-image/:imageId",
   uploadProductImage.single("image"),
   async (req, res) => {
     try {
-      const { id, index } = req.params;
+      const { imageId } = req.params;
 
-      const product = await Product_table.findById(id);
-      if (!product) return res.json({ success: false });
-
+      // 1️⃣ Check file uploaded
       if (!req.file) {
-        return res.json({ success: false, message: "No image uploaded" });
+        return res.status(400).json({
+          success: false,
+          message: "No image uploaded"
+        });
       }
 
-      product.images[index].image_path = "uploads/" + req.file.filename;
+      // 2️⃣ Find the image record in DB
+      const image = await ProductImageTable.findById(imageId);
+      if (!image) {
+        return res.status(404).json({
+          success: false,
+          message: "Image not found"
+        });
+      }
 
-      await product.save();
+      // 3️⃣ Build correct absolute path
+      const oldFilePath = `/var/www/${image.image_path}`;
 
-      res.json({ success: true });
+      // 4️⃣ Delete old file safely
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      // 5️⃣ Update image path in database
+      image.image_path = `uploads/products/${req.file.filename}`;
+      await image.save();
+
+      res.json({
+        success: true,
+        message: "Image replaced successfully"
+      });
+
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
     }
   }
 );
+
+
+
+router.delete("/delete-image/:imageId", async (req, res) => {
+  try {
+    const { imageId } = req.params;
+
+    // 1️⃣ Find image record
+    const image = await ProductImageTable.findById(imageId);
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found"
+      });
+    }
+
+    // 2️⃣ Build correct file path
+    const filePath = `/var/www/${image.image_path}`;
+
+    // 3️⃣ Delete physically from server
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // 4️⃣ Delete from database
+    await ProductImageTable.findByIdAndDelete(imageId);
+
+    res.json({
+      success: true,
+      message: "Image deleted successfully"
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
+
 
 
 
