@@ -25,6 +25,32 @@ const uploadProductImage = multer({ storage: productStorage });
 // const storage = multer.memoryStorage(); // <--- store in memory not disk
 // const upload = multer({ storage });
 
+// admin edit produt images 
+router.put("/replace-image/:id/:index",
+  uploadProductImage.single("image"),
+  async (req, res) => {
+    try {
+      const { id, index } = req.params;
+
+      const product = await Product_table.findById(id);
+      if (!product) return res.json({ success: false });
+
+      if (!req.file) {
+        return res.json({ success: false, message: "No image uploaded" });
+      }
+
+      product.images[index].image_path = "uploads/" + req.file.filename;
+
+      await product.save();
+
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+);
+
+
 
 
 // fetch 10 latest product to user featured product 
