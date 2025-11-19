@@ -9,7 +9,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js"
 import postRoutes from "./routes/postRoutes.js"
-
+import mediaRoutes from "./routes/mediaRoutes.js";
 
 import { fileURLToPath } from "url";
 
@@ -54,6 +54,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/product", productRoutes); // <-- make sure it's plural!
 app.use("/api/banners", bannerRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api", mediaRoutes);
 
 
 
