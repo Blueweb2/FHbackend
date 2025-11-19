@@ -26,7 +26,7 @@ router.post("/", upload.single("image"), async (req, res) => {
     if (!req.file)
       return res.status(400).json({ message: "Image is required" });
 
-    const imagePath = `/uploads/posts/${req.file.filename}`;
+    const imagePath = `uploads/posts/${req.file.filename}`;
 
     const newPost = await Blog_table.create({
       title,
@@ -85,7 +85,7 @@ router.put("/:id", upload.single("image"), async (req, res) => {
 
     // if new image is uploaded
     if (req.file) {
-      updateData.image = `/uploads/posts/${req.file.filename}`;
+      updateData.image = `uploads/posts/${req.file.filename}`;
     }
 
     const updatedPost = await Blog_table.findByIdAndUpdate(
