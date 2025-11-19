@@ -20,16 +20,11 @@ const blogSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String,   // Blog main image URL
+      type: String,
       required: true,
-    },
-
-    date: {
-      type: String,   // Example: "DEC 24 2024"
-      required: true,
-    },
+    }
   },
-  { timestamps: true }
+  { timestamps: true }   // <-- createdAt and updatedAt auto added
 );
 
 const Blog_table= mongoose.model("Blog_table", blogSchema);
