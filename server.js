@@ -53,8 +53,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/product", productRoutes); // <-- make sure it's plural!
 app.use("/api/banners", bannerRoutes);
-app.use("/api/blogs", postRoutes);
-// app.use("/api/contact", contactRoutes);
+app.use("/api/posts", postRoutes);
 
 
 
