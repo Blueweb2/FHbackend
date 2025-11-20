@@ -53,7 +53,7 @@ function safeResolve(folder, fileName) {
 /* -----------------------------------------
     GET /api/media  (pagination + search + filter)
 ------------------------------------------*/
-router.get("/api/media", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 40;
