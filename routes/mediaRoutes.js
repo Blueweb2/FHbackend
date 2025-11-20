@@ -117,6 +117,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/favorite/:name", express.json(), async (req, res) => {
+  try {
+    const file = req.params.name;
+    const folder = req.query.cat || "";
+
+    const meta = await readMeta(folder);
+
+    if (!meta[file]) meta[file] = {};
+
+    meta[file].favorite = req.body.favorite === true;
+
+    await writeMeta(folder, meta);
+
+    return res.json({ ok: true, favorite: meta[file].favorite });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});
+
+
 /* -----------------------------------------
     DOWNLOAD
 ------------------------------------------*/
