@@ -54,7 +54,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/product", productRoutes); // <-- make sure it's plural!
 app.use("/api/banners", bannerRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api", mediaRoutes);
+app.use("/api/media", mediaRoutes);
 
 
 
