@@ -9,28 +9,32 @@ const router = express.Router();
 // =================================================
 //                  MULTER STORAGE
 // =================================================
+const UPLOAD_ROOT = "/var/www/uploads/banners";   // base folder
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-  //  const uploadPath = "uploads/banners";
-    const uploadPath = "/var/www/uploads/banners";
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+  destination(req, file, cb) {
+    if (!fs.existsSync(UPLOAD_ROOT)) {
+      fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
     }
-    cb(null, uploadPath);
+    cb(null, UPLOAD_ROOT);
   },
-  filename: function (req, file, cb) {
+  filename(req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
 const upload = multer({ storage });
 
+// Helper for absolute file path
+const makeAbsolute = (relativePath) => {
+  return path.join("/var/www", relativePath); // ensures correct delete path
+};
+
 // =================================================
 //            CREATE BANNER (desktop + mobile)
 // =================================================
 
 router.post("/", (req, res) => {
-  // Call multer inside the route so we can catch multer errors here
   const fieldsUpload = upload.fields([
     { name: "desktopImage", maxCount: 1 },
     { name: "mobileImage", maxCount: 1 },
@@ -38,13 +42,11 @@ router.post("/", (req, res) => {
 
   fieldsUpload(req, res, async (err) => {
     if (err) {
-      // Multer error (file too large, invalid file type, etc.)
-      console.error("Multer error while uploading banner:", err);
-      return res.status(400).json({ message: err.message || "File upload error", code: err.code || null });
+      console.error("Multer error:", err);
+      return res.status(400).json({ message: err.message });
     }
 
     try {
-      // Desktop image must be uploaded
       if (!req.files || !req.files.desktopImage) {
         return res.status(400).json({ message: "Desktop image is required" });
       }
@@ -57,21 +59,15 @@ router.post("/", (req, res) => {
       const banner = new BannerTable({
         title: req.body.title || "",
         subtitle: req.body.subtitle || "",
-
-        // required desktop image
         image: desktopImage,
-
-        // required mobile image
         mobileImage,
-
-        // "light" or "dark"
         textMode: req.body.textMode === "light" ? "light" : "dark",
       });
 
       await banner.save();
       res.status(201).json({ success: true, banner });
     } catch (error) {
-      console.error("ERROR while uploading banner:", error);
+      console.error("Upload ERROR:", error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -91,7 +87,7 @@ router.get("/", async (req, res) => {
 });
 
 // =================================================
-//                  GET ACTIVE
+//                  GET ACTIVE (SORTED)
 // =================================================
 router.get("/active", async (req, res) => {
   try {
@@ -110,9 +106,9 @@ router.put("/:id/activate", async (req, res) => {
     const activeCount = await BannerTable.countDocuments({ active: true });
 
     if (activeCount >= 2) {
-      return res
-        .status(400)
-        .json({ message: "Only 2 banners can be active at a time" });
+      return res.status(400).json({
+        message: "Only 2 banners can be active at a time",
+      });
     }
 
     const banner = await BannerTable.findByIdAndUpdate(
@@ -125,6 +121,74 @@ router.put("/:id/activate", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+// =================================================
+//               REORDER BANNERS (SORTING)
+// =================================================
+router.put("/reorder", async (req, res) => {
+  const { order } = req.body;
+
+  if (!Array.isArray(order)) {
+    return res.status(400).json({ message: "Order must be an array" });
+  }
+
+  try {
+    for (let i = 0; i < order.length; i++) {
+      await BannerTable.findByIdAndUpdate(order[i], { order: i });
+    }
+
+    res.json({ success: true, message: "Order updated" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// =================================================
+//           UPDATE BANNER (TEXT + IMAGES)
+// =================================================
+router.put("/:id", (req, res) => {
+  const updateUpload = upload.fields([
+    { name: "desktopImage", maxCount: 1 },
+    { name: "mobileImage", maxCount: 1 },
+  ]);
+
+  updateUpload(req, res, async (err) => {
+    if (err) return res.status(400).json({ message: err.message });
+
+    try {
+      const banner = await BannerTable.findById(req.params.id);
+      if (!banner) return res.status(404).json({ message: "Banner not found" });
+
+      // Replace Desktop
+      if (req.files.desktopImage) {
+        const absPath = makeAbsolute(banner.image);
+        if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+
+        banner.image = `uploads/banners/${req.files.desktopImage[0].filename}`;
+      }
+
+      // Replace Mobile
+      if (req.files.mobileImage) {
+        const absPath = makeAbsolute(banner.mobileImage);
+        if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+
+        banner.mobileImage = `uploads/banners/${req.files.mobileImage[0].filename}`;
+      }
+
+      // Update text fields
+      banner.title = req.body.title ?? banner.title;
+      banner.subtitle = req.body.subtitle ?? banner.subtitle;
+      banner.textMode = req.body.textMode ?? banner.textMode;
+
+      await banner.save();
+
+      res.json({ success: true, banner });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
+    }
+  });
 });
 
 // =================================================
@@ -145,22 +209,23 @@ router.put("/:id/deactivate", async (req, res) => {
 });
 
 // =================================================
-//                    DELETE
+//                    DELETE BANNER
 // =================================================
 router.delete("/:id", async (req, res) => {
   try {
     const banner = await BannerTable.findById(req.params.id);
-    if (!banner)
-      return res.status(404).json({ message: "Banner not found" });
+    if (!banner) return res.status(404).json({ message: "Banner not found" });
 
-    // Delete desktop image
-    if (banner.image && fs.existsSync(banner.image)) {
-      fs.unlinkSync(banner.image);
+    // Remove desktop
+    if (banner.image) {
+      const absPath = makeAbsolute(banner.image);
+      if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
     }
 
-    // Delete mobile image
-    if (banner.mobileImage && fs.existsSync(banner.mobileImage)) {
-      fs.unlinkSync(banner.mobileImage);
+    // Remove mobile
+    if (banner.mobileImage) {
+      const absPath = makeAbsolute(banner.mobileImage);
+      if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
     }
 
     await banner.deleteOne();
