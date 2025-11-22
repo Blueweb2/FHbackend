@@ -165,7 +165,7 @@ router.get("/userview", async (req, res) => {
   try {
     // Get all products
     const products = await Product_table.find()
-     .sort({ createdAt: -1 })
+     .sort({ date: -1 })
       .populate("CAT_ID", "category_name")
       .lean();
 
@@ -193,7 +193,7 @@ router.get("/userview", async (req, res) => {
           product_info: product.product_info || "",
           category: product.CAT_ID?.category_name || "Uncategorized",
           main_image: mainImage ? mainImage.image_path : null, // ✅ attach image
-            createdAt: product.createdAt,
+            date: product.date,
         };
       })
     );
