@@ -165,6 +165,7 @@ router.get("/userview", async (req, res) => {
   try {
     // Get all products
     const products = await Product_table.find()
+     .sort({ createdAt: -1 })
       .populate("CAT_ID", "category_name")
       .lean();
 
