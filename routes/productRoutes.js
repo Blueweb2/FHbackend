@@ -193,6 +193,7 @@ router.get("/userview", async (req, res) => {
           product_info: product.product_info || "",
           category: product.CAT_ID?.category_name || "Uncategorized",
           main_image: mainImage ? mainImage.image_path : null, // ✅ attach image
+            createdAt: product.createdAt,
         };
       })
     );
