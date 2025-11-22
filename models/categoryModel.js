@@ -4,7 +4,9 @@ const categorySchema = new mongoose.Schema(
   {
     category_name: { type: String, required: true, unique: true, trim: true },
     category_image: { type: String, required: true },
+    priority: { type: Number, default: 0 },
   },
+  
   { timestamps: true } // automatically adds createdAt and updatedAt
 );
 
