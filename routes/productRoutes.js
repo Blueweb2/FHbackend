@@ -272,8 +272,16 @@ router.get("/userview/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 🧱 Step 1: Fetch product using prod_id, NOT _id
-    const product = await Product_table.findOne({ prod_id: id })
+    // Validate ID format
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid MongoDB ID",
+      });
+    }
+
+    // Step 1: Find product using MongoDB _id
+    const product = await Product_table.findById(id)
       .populate("CAT_ID", "category_name")
       .lean();
 
@@ -284,19 +292,15 @@ router.get("/userview/:id", async (req, res) => {
       });
     }
 
-    // 🧱 Step 2: Fetch all images linked to this product (_id)
-    const images = await ProductImageTable.find({
-      PRODUCT_ID: product._id,
-    });
+    // Step 2: Fetch all images for this product
+    const images = await ProductImageTable.find({ PRODUCT_ID: product._id });
 
-    // Separate images
     const mainImg = images.find((img) => img.is_main);
     const otherImages = images.filter((img) => !img.is_main);
 
-    // Build URL base
     const baseUrl = `${req.protocol}://${req.get("host")}/`;
 
-    // 🧱 Step 3: Build clean response object
+    // Step 3: Build response object
     const productDetails = {
       _id: product._id,
       prod_id: product.prod_id,
@@ -305,24 +309,25 @@ router.get("/userview/:id", async (req, res) => {
       product_info: product.product_info || "",
       category: product.CAT_ID?.category_name || "Uncategorized",
 
+      // Absolute URLs for images
       main_image: mainImg ? `${baseUrl}${mainImg.image_path}` : null,
       gallery: otherImages.map((img) => `${baseUrl}${img.image_path}`),
     };
 
-    // 🧱 Step 4: Send response
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       product: productDetails,
     });
 
   } catch (error) {
-    console.error("❌ Error fetching single product:", error);
-    return res.status(500).json({
+    console.error("❌ Error fetching product:", error);
+    res.status(500).json({
       success: false,
-      message: "Server error while fetching product details",
+      message: "Server error while fetching product",
     });
   }
 });
+
 
 
 
