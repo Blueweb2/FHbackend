@@ -148,7 +148,7 @@ router.get("/latest", async (req, res) => {
           prod_id: product.prod_id,
           product_name: product.product_name,
           description: product.description,
-          product_info: product.product_info || "",
+          product_info: product.product_info || [],
           category: product.CAT_ID?.category_name || "Uncategorized",
           main_image: mainImage ? mainImage.image_path : null, // ✅ attach image
         };
@@ -190,7 +190,7 @@ router.get("/userview", async (req, res) => {
           prod_id: product.prod_id,
           product_name: product.product_name,
           description: product.description,
-          product_info: product.product_info || "",
+          product_info: product.product_info || [],
           category: product.CAT_ID?.category_name || "Uncategorized",
           main_image: mainImage ? mainImage.image_path : null, // ✅ attach image
             date: product.date,
@@ -306,7 +306,7 @@ router.get("/userview/:id", async (req, res) => {
       prod_id: product.prod_id,
       name: product.product_name,
       description: product.description,
-      product_info: product.product_info || "",
+      product_info: product.product_info || [],
       category: product.CAT_ID?.category_name || "Uncategorized",
 
       // Absolute URLs for images
@@ -602,33 +602,67 @@ router.post("/searchProducts", async (req, res) => {
 /* ============================================================
    ✅ 6. Delete Product
 ============================================================ */
+// router.post("/delete", async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     if (!id)
+//       return res.status(400).json({ success: false, message: "Product ID required" });
+
+//     const product = await Product_table.findById(id);
+//     if (!product)
+//       return res.status(404).json({ success: false, message: "Product not found" });
+
+//     // Delete product images
+//     const images = await ProductImageTable.find({ PRODUCT_ID: id });
+//     for (const img of images) {
+//       if (img.image_path && fs.existsSync(img.image_path)) {
+//         fs.unlinkSync(img.image_path);
+//       }
+//     }
+
+//     await ProductImageTable.deleteMany({ PRODUCT_ID: id });
+//     await Product_table.findByIdAndDelete(id);
+
+//     res.json({ success: true, message: "✅ Product deleted successfully" });
+//   } catch (error) {
+//     console.error("❌ Error deleting product:", error);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+
+/* ============================================================
+   📌 DELETE PRODUCT (NO PHYSICAL FILE DELETE)
+============================================================ */
 router.post("/delete", async (req, res) => {
   try {
     const { id } = req.body;
-    if (!id)
+
+    if (!id) {
       return res.status(400).json({ success: false, message: "Product ID required" });
-
-    const product = await Product_table.findById(id);
-    if (!product)
-      return res.status(404).json({ success: false, message: "Product not found" });
-
-    // Delete product images
-    const images = await ProductImageTable.find({ PRODUCT_ID: id });
-    for (const img of images) {
-      if (img.image_path && fs.existsSync(img.image_path)) {
-        fs.unlinkSync(img.image_path);
-      }
     }
 
+    const product = await Product_table.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // 1️⃣ Delete image records from MongoDB ONLY
     await ProductImageTable.deleteMany({ PRODUCT_ID: id });
+
+    // 2️⃣ Delete product from DB
     await Product_table.findByIdAndDelete(id);
 
-    res.json({ success: true, message: "✅ Product deleted successfully" });
+    res.json({
+      success: true,
+      message: "Product deleted successfully (images NOT removed from media)",
+    });
   } catch (error) {
-    console.error("❌ Error deleting product:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
 
 // ✅ Get Single Product by ID to edit
 router.get("/:id", async (req, res) => {

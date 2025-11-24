@@ -15,10 +15,19 @@ const productSchema = new mongoose.Schema({
   },
 
   // Description of the product
-  description: { type: String, required: true, trim: true },
+  description: { type: String,  trim: true },
 
   // Optional extra info (technical specs, features, etc.)
-  product_info: { type: String, trim: true },
+product_info: {
+  type: [
+    {
+      key: { type: String, trim: true },
+      value: { type: String, trim: true }
+    }
+  ],
+  default: []
+},
+
 
   // Date when the product was added
   date: { type: Date, default: Date.now },
