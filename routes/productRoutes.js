@@ -272,8 +272,8 @@ router.get("/userview/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 🧱 Step 1: Fetch the product document
-    const product = await Product_table.findById(id)
+    // 🧱 Step 1: Fetch product using prod_id, NOT _id
+    const product = await Product_table.findOne({ prod_id: id })
       .populate("CAT_ID", "category_name")
       .lean();
 
@@ -284,17 +284,19 @@ router.get("/userview/:id", async (req, res) => {
       });
     }
 
-    // 🧱 Step 2: Fetch all images linked to the product
-    const images = await ProductImageTable.find({ PRODUCT_ID: id });
+    // 🧱 Step 2: Fetch all images linked to this product (_id)
+    const images = await ProductImageTable.find({
+      PRODUCT_ID: product._id,
+    });
 
-    // Separate main image & others
+    // Separate images
     const mainImg = images.find((img) => img.is_main);
     const otherImages = images.filter((img) => !img.is_main);
 
-    // 🧱 Step 3: Ensure correct base URL (e.g., http://localhost:5000/)
+    // Build URL base
     const baseUrl = `${req.protocol}://${req.get("host")}/`;
 
-    // 🧱 Step 4: Build structured response object
+    // 🧱 Step 3: Build clean response object
     const productDetails = {
       _id: product._id,
       prod_id: product.prod_id,
@@ -303,12 +305,11 @@ router.get("/userview/:id", async (req, res) => {
       product_info: product.product_info || "",
       category: product.CAT_ID?.category_name || "Uncategorized",
 
-      // ✅ Build complete URLs for images
       main_image: mainImg ? `${baseUrl}${mainImg.image_path}` : null,
       gallery: otherImages.map((img) => `${baseUrl}${img.image_path}`),
     };
 
-    // 🧱 Step 5: Send clean structured response
+    // 🧱 Step 4: Send response
     return res.status(200).json({
       success: true,
       product: productDetails,
@@ -322,6 +323,7 @@ router.get("/userview/:id", async (req, res) => {
     });
   }
 });
+
 
 
 
