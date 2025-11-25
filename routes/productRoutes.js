@@ -265,6 +265,62 @@ router.get("/category/:categoryName", async (req, res) => {
 });
 
 
+
+// router.get("/category/:categoryName", async (req, res) => {
+//   try {
+//     const { categoryName } = req.params;
+
+//     // Fetch all products with category info
+//     const products = await Product_table.find()
+//       .populate("CAT_ID", "category_name")
+//       .lean();
+
+//     // Match category name
+//     const matchedProducts = products.filter(
+//       (p) =>
+//         p.CAT_ID?.category_name?.toLowerCase() === categoryName.toLowerCase()
+//     );
+
+//     // Attach images + keep all required fields
+//     const productsWithImage = await Promise.all(
+//       matchedProducts.map(async (product) => {
+//         const mainImg =
+//           (await ProductImageTable.findOne({
+//             PRODUCT_ID: product._id,
+//             is_main: true,
+//           })) ||
+//           (await ProductImageTable.findOne({ PRODUCT_ID: product._id }));
+
+//         return {
+//           _id: product._id,
+//           prod_id: product.prod_id,
+//           product_name: product.product_name,
+//           description: product.description,
+//           product_info: product.product_info,
+//           category: product.CAT_ID?.category_name,
+//           date: product.date,  // 🔥 IMPORTANT
+//           main_image: mainImg ? mainImg.image_path : null,
+//         };
+//       })
+//     );
+
+//     res.json({
+//       success: true,
+//       products: productsWithImage,
+//     });
+//   } catch (error) {
+//     console.error("❌ Error fetching category products:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error while fetching category products",
+//     });
+//   }
+// });
+/* ============================================================
+   7. Get Single Product Details for User View
+============================================================ */
+
+
 // ✅ USER-FACING: Fetch single product details by ID
 // ✅ USER-FACING: Fetch single product details by ID
 // ✅ USER-FACING: Fetch single product details by ID
@@ -398,7 +454,7 @@ router.put("/setMainImage/:imageId", async (req, res) => {
 router.post("/add", async (req, res) => {
   try {
     const { prod_id, product_name, CAT_ID, description, product_info } = req.body;
-    if (!prod_id || !product_name || !CAT_ID || !description) {
+    if (!prod_id || !product_name || !CAT_ID ) {
       return res.status(400).json({ success: false, message: "All required fields must be filled" });
     }
 
