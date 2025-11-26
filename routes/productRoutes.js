@@ -161,6 +161,13 @@ router.get("/latest", async (req, res) => {
   }
 });
 
+
+// ======================================================================
+
+// USER view of all products with main image
+// ======================================================================
+
+
 router.get("/userview", async (req, res) => {
   try {
     // Get all products
@@ -212,8 +219,10 @@ router.get("/userview", async (req, res) => {
 });
 
 
-// ✅ Get products by category
-// ✅ Get products by category name
+/* ============================================================
+   8. Get Products by Category Name for User View
+============================================================ */
+// ✅ USER-FACING: Fetch products by category name
 router.get("/category/:categoryName", async (req, res) => {
   try {
     const { categoryName } = req.params;
@@ -449,7 +458,7 @@ router.put("/setMainImage/:imageId", async (req, res) => {
 
 
 /* ============================================================
-   ✅ 1. Add Product
+   ✅ 1. Add Product ADMIN SIDE
 ============================================================ */
 router.post("/add", async (req, res) => {
   try {
@@ -457,6 +466,18 @@ router.post("/add", async (req, res) => {
     if (!prod_id || !product_name || !CAT_ID ) {
       return res.status(400).json({ success: false, message: "All required fields must be filled" });
     }
+
+
+      // 🔥 Check if Product ID already exists
+    const existingProduct = await Product_table.findOne({ prod_id });
+    if (existingProduct) {
+      return res.status(409).json({
+        success: false,
+        message: "Product ID already exists",
+        code: "DUPLICATE_PROD_ID"
+      });
+    }
+
 
     const newProduct = new Product_table({
       prod_id,
