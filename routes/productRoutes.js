@@ -124,7 +124,7 @@ router.get("/latest", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const products = await Product_table.find()
-      .sort({ createdAt: -1 })
+      .sort({ date: -1 })
       .limit(limit)
       .populate("CAT_ID", "category_name")
       .lean();
