@@ -13,7 +13,7 @@ export const sendMail = async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.hostinger.com",
-      port: 587,
+      port: 465,
       secure: false,
       auth: {
         user: "info@fhgeneralequipment.com",
