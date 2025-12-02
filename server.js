@@ -10,6 +10,7 @@ import productRoutes from "./routes/productRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js"
 import postRoutes from "./routes/postRoutes.js"
 import mediaRoutes from "./routes/mediaRoutes.js";
+import contactRoute from "./routes/contactRoute.js";
 
 import { fileURLToPath } from "url";
 
@@ -59,7 +60,7 @@ app.use("/api/product", productRoutes); // <-- make sure it's plural!
 app.use("/api/banners", bannerRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/media", mediaRoutes);
-
+app.use("/api/contact", contactRoute);
 
 
 // ✅ Start Server
