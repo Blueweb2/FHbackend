@@ -369,7 +369,7 @@ router.get("/userview/:id", async (req, res) => {
     const productDetails = {
       _id: product._id,
       prod_id: product.prod_id,
-      name: product.product_name,
+      product_name: product.product_name,
       description: product.description,
       product_info: product.product_info || [],
       category: product.CAT_ID?.category_name || "Uncategorized",
