@@ -5,6 +5,7 @@ import fsSync from "fs";
 import path from "path";
 import multer from "multer";
 
+
 // Correct Models
 import Product_table from "../models/productModel.js";
 import ProductImageTable from "../models/productImage.js";
